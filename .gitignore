@@ -1,3 +1,4 @@
 src/main/resources/conn.properties
 target
 .env
+db.properties

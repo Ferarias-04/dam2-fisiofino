@@ -1,0 +1,19 @@
+name: fisiofino
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: fisiofino-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fisiofino
+      POSTGRES_USER: fisiofino
+      POSTGRES_PASSWORD: fisiofino
+    ports:
+      - "5433:5432"
+    volumes:
+      - fisiofino-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+volumes:
+  fisiofino-data:
