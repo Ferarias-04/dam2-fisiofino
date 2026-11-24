@@ -100,13 +100,47 @@ public class LectorXML {
         }
  
         // Cas base 2: element fulla (nom, cognoms...) -> mostrem nom i text a la mateixa línia
+               // Cas base 2: element fulla (nom, cognoms...) -> mostrem nom i text a la mateixa línia
         if (esFulla(node)) {
-/* AQUÍ TENIU UN EXEMPLE DE COM EXTREURE EL TEXT DELS ELEMENTS
-             if (node.getNodeName().equals("given")) {
-                p.setNom(node.getTextContent());
-            } */
+            String nom = node.getNodeName();
+            String text = node.getTextContent().trim();
+
+            if (mp != null) {
+                // Estamos dentro de un <problem>: datos de la enfermedad
+                if (nom.equals("code")) {
+                    mp.setName(text);
+                } else if (nom.equals("status")) {
+                    mp.setStatus(text);
+                } else if (nom.equals("medication")) {
+                    // El primer medicamento se guarda tal cual; los siguientes se añaden con "; "
+                    if (mp.getTreatment() == null) {
+                        mp.setTreatment(text);
+                    } else {
+                        mp.setTreatment(mp.getTreatment() + "; " + text);
+                    }
+                } else if (nom.equals("frequency")) {
+                    // La frecuencia va justo después de su medicamento
+                    mp.setTreatment(mp.getTreatment() + ", " + text);
+                }
+            } else if (p != null) {
+                // Estamos dentro de un paciente, fuera de los <problem>
+                if (nom.equals("given")) {
+                    p.setGivenName(text);
+                } else if (nom.equals("family")) {
+                    p.setFamilyName(text);
+                } else if (nom.equals("dni")) {
+                    p.setDni(text);
+                } else if (nom.equals("streetAddressLine")) {
+                    p.setAddress(text);
+                } else if (nom.equals("city")) {
+                    p.setCity(text);
+                } else if (nom.equals("postalCode")) {
+                    p.setPostalCode(text);
+                } else if (nom.equals("country")) {
+                    p.setCountry(text);
+                }
+            }
             return;
-        /****************** HAS DE COMPLETAR EL CODI ********************/
         }
 
         // Element pare significa que creem un nou pacient
