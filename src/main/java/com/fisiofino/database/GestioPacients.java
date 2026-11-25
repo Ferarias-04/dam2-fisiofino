@@ -189,7 +189,9 @@ public class GestioPacients {
             
             ps.setString(1, status);
             ps.setInt(2, idPacient);
-            ps.setString(3, snomedCode);    
+            ps.setString(3, snomedCode);
+            
+            modificat = ps.executeUpdate() > 0;
         }            
 
         return  modificat;
