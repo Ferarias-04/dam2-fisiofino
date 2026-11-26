@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,11 +77,11 @@ public class LectorXML {
      *  - Cas recursiu: element pare -> el mostrem i explorem els seus fills.
      *
      * node:   node que estem visitant
-     * nivell: profunditat dins l'arbre (0 = arrel, 1 = registres com <alumne>..., 
+     * nivell: profunditat dins l'arbre (0 = arrel, 1 = registres com <alumne>...,
      *                                   2 = registres com <nom>)
      */
     public static void recorrer(Node node, int nivell, List<Pacient> pacients, List<MalaltiaPacient> malPacients) {
-        
+
         // Cas base 1: només tractem elements; els nodes de text de la indentació s'ignoren
         if (node.getNodeType() != Node.ELEMENT_NODE) return;
 
@@ -87,20 +89,42 @@ public class LectorXML {
         NamedNodeMap atributs = node.getAttributes();
         for (int i = 0; i < atributs.getLength(); i++) {
             Node at = atributs.item(i);
-            if (node.getNodeName().equals("telecom")) {
-/* AQUÍ TENIU UN EXEMPLE DE COM EXTREURE INFORMACIÓ D'ATRIBUTS
-                 if (at.getTextContent().contains("tel")) {
-                    p.setTelefon(at.getTextContent().substring(4));
+            String nomNode = node.getNodeName();
+            String nomAtribut = at.getNodeName();
+            String valor = at.getTextContent();
+
+            // <telecom value="tel:+34-600-000-000"/> i <telecom value="mailto:..."/>
+            if (nomNode.equals("telecom") && nomAtribut.equals("value")) {
+                if (valor.startsWith("tel:")) {
+                    p.setTelephone(valor.substring(4));
                 }
-                if (at.getTextContent().contains("mailto")) {
-                    p.setMail(at.getTextContent().substring(7));
-                } */
+                if (valor.startsWith("mailto:")) {
+                    p.setEmail(valor.substring(7));
+                }
             }
-            /******************** HAS DE COMPLETAR EL CODI ***************/
+
+            // <administrativeGenderCode code="F"/>
+            if (nomNode.equals("administrativeGenderCode") && nomAtribut.equals("code")) {
+                p.setGender(valor);
+            }
+
+            // <birthTime value="19850314"/>
+            if (nomNode.equals("birthTime") && nomAtribut.equals("value")) {
+                p.setBirthDate(LocalDate.parse(valor, DateTimeFormatter.ofPattern("yyyyMMdd")));
+            }
+
+            // Dins d'un <problem>: <code code="38341003">Hipertensió</code> -> codi SNOMED
+            if (mp != null && nomNode.equals("code") && nomAtribut.equals("code")) {
+                mp.setCode(valor);
+            }
+
+            // Dins d'un <problem>: <dose value="10" unit="mg"/> -> s'afegeix al tractament
+            if (mp != null && nomNode.equals("dose") && nomAtribut.equals("value")) {
+                mp.setTreatment(mp.getTreatment() + " " + valor + " " + ((Element) node).getAttribute("unit"));
+            }
         }
- 
+
         // Cas base 2: element fulla (nom, cognoms...) -> mostrem nom i text a la mateixa línia
-               // Cas base 2: element fulla (nom, cognoms...) -> mostrem nom i text a la mateixa línia
         if (esFulla(node)) {
             String nom = node.getNodeName();
             String text = node.getTextContent().trim();
@@ -146,13 +170,14 @@ public class LectorXML {
         // Element pare significa que creem un nou pacient
         if (nivell == 1) {
             p = new Pacient();
-        } 
+        }
 
         if (node.getNodeName().equals("problem")) {
             mp = new MalaltiaPacient();
-
-           /* DESCOMENTEU SI HO COMENTEU NECESSARI, dependrà de la vostra implementació  
-           mp.setDniPacient(p.getDniNie());  */  // la informació del pacient <recordTarget> apareix abans dels <problem>
+            // la informació del pacient <recordTarget> apareix abans dels <problem>
+            mp.setDniPacient(p.getDni());
+            mp.setGivenName(p.getGivenName());
+            mp.setFamilyName(p.getFamilyName());
         }
 
         // Cas recursiu: explorem els fills un nivell més avall
