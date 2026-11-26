@@ -71,7 +71,7 @@ dam2-fisiofino/
 
 ## Proposta de millora del model relacional
 
-Durant el desenvolupament hem detectat diverses limitacions del model proposat. Cada millora parteix d'un problema concret trobat a l'XML o a l'aplicació.
+Durant el desenvolupament he detectat diverses limitacions del model proposat. Cada millora parteix d'un problema concret trobat a l'XML o a l'aplicació.
 
 ### Model actual
 
