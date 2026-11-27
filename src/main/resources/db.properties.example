@@ -1,0 +1,4 @@
+db.url=jdbc:postgresql://localhost:5433/fisiofino
+db.user=fisiofino
+db.password=fisiofino
+db.pool.size=4

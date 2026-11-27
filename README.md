@@ -38,7 +38,13 @@ Per esborrar les dades i tornar a començar: `docker compose down -v` i `docker 
 
 ### 2. Configuració de la connexió
 
-Les dades de connexió són a `src/main/resources/db.properties`:
+El fitxer `src/main/resources/db.properties` no es puja al repositori (és al `.gitignore`). Per crear-lo, copieu la plantilla `db.properties.example` de la mateixa carpeta amb el nom `db.properties`:
+
+```bash
+cp src/main/resources/db.properties.example src/main/resources/db.properties
+```
+
+Amb la base de dades de Docker, els valors de la plantilla ja funcionen sense canvis:
 
 ```properties
 db.url=jdbc:postgresql://localhost:5433/fisiofino
@@ -63,7 +69,7 @@ dam2-fisiofino/
 │   ├── database/               Connexio (pool HikariCP) i GestioPacients (consultes JDBC)
 │   ├── model/                  Pacient i MalaltiaPacient
 │   └── vista/                  MenuView: entrada i sortida per consola
-├── src/main/resources/         db.properties
+├── src/main/resources/         db.properties.example (plantilla de db.properties)
 └── pacientes_bluebutton.xml    Fitxer de prova
 ```
 
@@ -71,7 +77,7 @@ dam2-fisiofino/
 
 ## Proposta de millora del model relacional
 
-Durant el desenvolupament he detectat diverses limitacions del model proposat. Cada millora parteix d'un problema concret trobat a l'XML o a l'aplicació.
+Durant el desenvolupament hem detectat diverses limitacions del model proposat. Cada millora parteix d'un problema concret trobat a l'XML o a l'aplicació.
 
 ### Model actual
 
