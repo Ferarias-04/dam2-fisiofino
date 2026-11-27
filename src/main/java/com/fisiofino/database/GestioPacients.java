@@ -22,14 +22,17 @@ public class GestioPacients {
         if(existent != null) {
             return existent.getIdPatient();
         }
+
         String sql = "INSERT INTO patient (given_name, family_name, nif, birth_date, gender, " 
                     + "address, city, postal_code, country, telephone, email) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                     + "RETURNING id_patient";
         
-        try (Connection con = Connexio.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = Connexio.getConnection()) {
 
+            con.setAutoCommit(false);
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setString(1, p.getGivenName());
                 ps.setString(2, p.getFamilyName());
                 ps.setString(3, p.getDni());
@@ -47,8 +50,16 @@ public class GestioPacients {
                         idPacient = rs.getInt("id_patient");
                     }
                 }
+
+                con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
             }
-                        
+        }
+
         return idPacient;
     }
 
@@ -62,14 +73,25 @@ public class GestioPacients {
 
         String sql = "INSERT INTO disease (snomed_code, name_disease) VALUES (?, ?)";
 
-        try (Connection con = Connexio.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = Connexio.getConnection()) {
             
-            ps.setString(1, mp.getCode());
-            ps.setString(2, mp.getName());
+            con.setAutoCommit(false);
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                
+                ps.setString(1, mp.getCode());
+                ps.setString(2, mp.getName());
             
-            malaltiaCreada = ps.executeUpdate() > 0;
-        }
+                malaltiaCreada = ps.executeUpdate() > 0;
+
+                con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }    
         
         return malaltiaCreada;
     }    
@@ -87,16 +109,27 @@ public class GestioPacients {
         String sql = "INSERT INTO patient_disease (id_patient, snomed_code, status, treatment) "
                     + "SELECT id_patient, ?, ?, ? FROM patient WHERE nif = ?";
              
-        try (Connection con = Connexio.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = Connexio.getConnection()) {
 
-            ps.setString(1, mp.getCode());
-            ps.setString(2, mp.getStatus());
-            ps.setString(3, mp.getTreatment());
-            ps.setString(4, mp.getDniPacient());
+            con.setAutoCommit(false);
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+
+                ps.setString(1, mp.getCode());
+                ps.setString(2, mp.getStatus());
+                ps.setString(3, mp.getTreatment());
+                ps.setString(4, mp.getDniPacient());
             
-            malaltiaPacientCreada = ps.executeUpdate() > 0;
-        }            
+                malaltiaPacientCreada = ps.executeUpdate() > 0;
+
+                con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }  
+        }              
         
         return malaltiaPacientCreada;
     }    
@@ -184,15 +217,26 @@ public class GestioPacients {
                     + "WHERE id_diagnosis = (SELECT MAX(id_diagnosis) FROM patient_disease "
                     + "                      WHERE id_patient = ? AND snomed_code = ?)";
 
-        try (Connection con = Connexio.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = Connexio.getConnection()) {
             
-            ps.setString(1, status);
-            ps.setInt(2, idPacient);
-            ps.setString(3, snomedCode);
+            con.setAutoCommit(false);
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, status);
+                ps.setInt(2, idPacient);
+                ps.setString(3, snomedCode);
             
-            modificat = ps.executeUpdate() > 0;
-        }            
+                modificat = ps.executeUpdate() > 0;
+
+                con.commit();
+
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }    
+        }           
 
         return  modificat;
     }
